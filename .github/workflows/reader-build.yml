@@ -5,10 +5,30 @@ on:
     paths:
       - '.github/workflows/reader-build.yml'
       - 'reader/translate_sources.py'
+      - 'reader/prepare_model.py'
 permissions:
   contents: read
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install ctranslate2==4.6.0 sentencepiece==0.2.0
+      - run: python reader/prepare_model.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: offline-translator
+          retention-days: 1
+          if-no-files-found: error
+          path: reader/.model/
   translate:
+    needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
@@ -23,9 +43,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install local translation and PDF processing engines
-        run: python -m pip install pymupdf==1.26.7 ctranslate2==4.6.0 sentencepiece==0.2.0
-      - name: Translate exact source units without a paid API
+      - run: python -m pip install pymupdf==1.26.7 ctranslate2==4.6.0 sentencepiece==0.2.0
+      - uses: actions/download-artifact@v4
+        with:
+          name: offline-translator
+          path: reader/.model
+      - name: Translate exact source units locally
         run: python reader/translate_sources.py --shard ${{ matrix.shard }} --count 20
       - uses: actions/upload-artifact@v4
         with:
@@ -46,10 +69,14 @@ jobs:
           pattern: translation-shard-*
           path: reader/intermediate
           merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: offline-translator
+          path: reader/.model
       - name: Verify all shards are present
         run: |
           python - <<'PY'
-          import json, pathlib, gzip, re
+          import json, pathlib
           p=pathlib.Path('reader/intermediate')
           files=sorted(p.glob('translations-*.json'))
           assert len(files)==20, len(files)
@@ -60,6 +87,8 @@ jobs:
               translations.update(data)
           assert all(v.strip() for v in translations.values())
           (p/'translations.json').write_text(json.dumps(translations,ensure_ascii=False),encoding='utf-8')
+          provenance=json.loads(pathlib.Path('reader/.model/download-provenance.json').read_text())
+          (p/'model-download.json').write_text(json.dumps(provenance,ensure_ascii=False,indent=2),encoding='utf-8')
           print('Complete nonempty translated units:',len(translations))
           PY
       - uses: actions/upload-artifact@v4
@@ -71,4 +100,6 @@ jobs:
             reader/intermediate/corpus.json.gz
             reader/intermediate/translations.json
             reader/intermediate/provenance-*.json
+            reader/intermediate/model-download.json
             reader/translate_sources.py
+            reader/prepare_model.py
