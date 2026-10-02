@@ -1,0 +1,37 @@
+name: Python SICP source snapshot
+on:
+  push:
+    branches: [reader/python-sicp-translation]
+    paths: ['.github/workflows/python-sicp-source.yml']
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 3ea94dca09c7c33dd1695a54cc8d216d26cc75a1
+          persist-credentials: false
+      - name: Verify the exact source files
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json
+          expected = {'Composing-Programs-2nd-Edition.pdf':'04d5042e77c03902b907a191eb0648ac562a9373','Composing-Programs-3rd-Edition-Chapters1-2.pdf':'51d558c3be91c7efd6de2e476ac61ca56c583672','SICPy-Python-Edition-Chapters1-3.pdf':'44afac6a32c1b97ee5842b387e394eae6b5ed8c2'}
+          result = []
+          for filename, sha in expected.items():
+              path = Path('python-sicp') / filename
+              data = path.read_bytes()
+              actual = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+              assert actual == sha, (filename, actual, sha)
+              result.append({'file':filename,'git_blob_sha':actual,'sha256':hashlib.sha256(data).hexdigest(),'bytes':len(data)})
+          Path('python-sicp/source-manifest.json').write_text(json.dumps({'commit':'3ea94dca09c7c33dd1695a54cc8d216d26cc75a1','files':result},indent=2))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: python-sicp-sources
+          path: python-sicp/
+          retention-days: 1
+          if-no-files-found: error
