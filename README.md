@@ -1,20 +1,56 @@
 # Engineering Bookshelf (现代软件与集成电路工程经典文库)
 
-本仓库归档并系统性整理了现代软件架构、嵌入式系统、持续交付、大规模生产运维（SRE）以及超大规模集成电路（VLSI）设计领域的权威著作与配套工程实战资源。
+本仓库归档并系统性整理了现代软件架构、程序构造基础（SICP Python 体系）、嵌入式系统、持续交付、大规模生产运维（SRE）以及超大规模集成电路（VLSI）设计领域的权威著作与配套工程实战资源。
 
 ---
 
 ## 📚 目录导航
 
-1. [嵌入式系统架构：Making Embedded Systems（第 2 版，2024）](#1-making-embedded-systems-第-2-版-2024)
-2. [敏捷交付与自动化：Continuous Delivery（持续交付）](#2-continuous-delivery-持续交付)
-3. [大规模高可靠运维：Site Reliability Engineering（Google SRE 解密）](#3-site-reliability-engineering-google-sre-解密)
-4. [工程文化与规模化研发：Software Engineering at Google（在线/离线全书）](#4-software-engineering-at-google-谷歌软件工程)
-5. [集成电路设计专项推荐：Introduction to VLSI Design Flow（从 RTL 到 GDSII）](#5-专项介绍introduction-to-vlsi-design-flow-剑桥2023新书)
+1. [程序构造与经典改编：SICP Python 衍生经典（Composing Programs & SICPy）](#1-程序构造与经典改编sicp-python-衍生经典)
+2. [嵌入式系统架构：Making Embedded Systems（第 2 版，2024）](#2-making-embedded-systems-第-2-版-2024)
+3. [敏捷交付与自动化：Continuous Delivery（持续交付）](#3-continuous-delivery-持续交付)
+4. [大规模高可靠运维：Site Reliability Engineering（Google SRE 解密）](#4-site-reliability-engineering-google-sre-解密)
+5. [工程文化与规模化研发：Software Engineering at Google（在线/离线全书）](#5-software-engineering-at-google-谷歌软件工程)
+6. [集成电路设计专项推荐：Introduction to VLSI Design Flow（从 RTL 到 GDSII）](#6-专项介绍introduction-to-vlsi-design-flow-剑桥2023新书)
 
 ---
 
-## 1. Making Embedded Systems (第 2 版, 2024)
+## 1. 程序构造与经典改编：SICP Python 衍生经典
+
+本专区归档了基于计算机科学皇冠著作《SICP》（计算机程序的构造和解释）改编的两大当代顶尖 Python 经典教材及其高清 PDF 与测试套件：
+
+### 1.1 Composing Programs (第二版 · 全本)
+- **作者**：John DeNero (UC Berkeley CS 61A)
+- **归档文件**：[`python-sicp/Composing-Programs-2nd-Edition.pdf`](python-sicp/Composing-Programs-2nd-Edition.pdf)
+- **规格**：182 页高清完整版，带完整书签导航、原版样式排版与代码高亮。
+- **完整度**：**100% 完整全书**（Chapters 1–4 全齐）。
+- **核心模块**：
+  - **第 1 章：函数抽象（1.1–1.7）**：高阶函数、环境图模型、纯函数与柯里化、递归。
+  - **第 2 章：数据抽象（2.1–2.9）**：序列、可变数据、类与对象的底层实现机制、树与链表对象。
+  - **第 3 章：解释计算机程序（3.1–3.5）**：**在 Python 中手写 Scheme 解释器**（包含分词器、读取器、EVAL/APPLY 核心循环与异常机制）。
+  - **第 4 章：数据处理与高级计算（4.1–4.8）**：惰性生成器、声明式 SQL 编程、逻辑编程（合一算法 Unification）、分布式计算（MapReduce 架构与多节点计算）以及并行计算。
+  - **工程附录**：附带完整的 `scalc.py`, `scheme_reader.py`, `crawler.py`, `particle.py` 源代码。
+
+### 1.2 Composing Programs (第三版 · 最新进展)
+- **作者**：John DeNero (UC Berkeley, 2026)
+- **归档文件**：[`python-sicp/Composing-Programs-3rd-Edition-Chapters1-2.pdf`](python-sicp/Composing-Programs-3rd-Edition-Chapters1-2.pdf)
+- **规格**：143 页最新排版版，覆盖官方当前已发布的完整内容。
+- **完整度**：**约 50% 进度**（第 1 章 Functions 与第 2 章 Data 已发布，第 3、4 章在编）。
+- **版本特色**：全面拥抱现代 **Python 3.12+** 泛型类型参数（如 `class Tree[T]:`）、`@dataclass` 以及类型注解系统，采用 MyST 现代科学出版格式重构。
+
+### 1.3 SICPy: Structure and Interpretation of Computer Programs (Python Edition)
+- **作者**：Harold Abelson & Gerald Jay Sussman 原著；**Martin Henz** 改编 (新加坡国立大学 NUS, 2026)
+- **归档文件**：[`python-sicp/SICPy-Python-Edition-Chapters1-3.pdf`](python-sicp/SICPy-Python-Edition-Chapters1-3.pdf)
+- **配套测试包**：[`python-sicp/sicpy-test-suite.zip`](python-sicp/sicpy-test-suite.zip)（含 1,251 个 Python 练习与用例）
+- **规格**：**364 页超长高清全本**，图文精校，字体锐利，内含全套 Python 作用域与环境模型矢量图。
+- **完整度**：**约 60% 全书体量**（第 1–3 章 100% 完工并通过 CPython 自动化测试；第 4–5 章改编中）。
+- **核心亮点**：
+  - 严格保持 MIT SICP 的经典论述体系，将 Scheme 语言结构一对一精确移植到 Python 惯用表达中。
+  - **第 1–3 章通过 CPython 自动化回归测试（138/138 项用例完全通过）**：涵盖代换模型、高阶过程、符号求导、复数算术包、带局部状态的对象、并发与时间约束、以及利用生成器构建的无限流（Streams / 质数筛网）。
+
+---
+
+## 2. Making Embedded Systems (第 2 版, 2024)
 
 - **作者**：Elecia White
 - **出版社**：O'Reilly Media（2024 年 3 月全新第 2 版）
@@ -30,7 +66,7 @@
 
 ---
 
-## 2. Continuous Delivery (持续交付)
+## 3. Continuous Delivery (持续交付)
 
 - **作者**：Jez Humble & David Farley（Martin Fowler 签名系列）
 - **出版社**：Addison-Wesley Professional
@@ -46,7 +82,7 @@ DevOps 与 CI/CD 领域的奠基之作，荣获 Jolt 卓越工程大奖：
 
 ---
 
-## 3. Site Reliability Engineering (Google SRE 解密)
+## 4. Site Reliability Engineering (Google SRE 解密)
 
 - **作者**：Betsy Beyer, Chris Jones, Niall Richard Murphy, Jennifer Petoff
 - **出版社**：O'Reilly Media
@@ -62,7 +98,7 @@ Google 首次公开其支撑全球数十亿用户级超大规模系统的架构�
 
 ---
 
-## 4. Software Engineering at Google (谷歌软件工程)
+## 5. Software Engineering at Google (谷歌软件工程)
 
 - **作者**：Titus Winters, Tom Manshreck, Hyrum Wright
 - **来源**：Google 官方开源电子书（中文全本离线文档库）
@@ -80,9 +116,9 @@ Google 首次公开其支撑全球数十亿用户级超大规模系统的架构�
 
 ---
 
-## 5. 专项介绍：《Introduction to VLSI Design Flow》 (剑桥2023新书)
+## 6. 专项介绍：《Introduction to VLSI Design Flow》 (剑桥2023新书)
 
-除了上述四部软件与系统工程著作外，集成电路硬件设计领域的全新力作 **《Introduction to VLSI Design Flow》** 极具战略学习价值：
+除了软件与系统工程著作外，集成电路硬件设计领域的全新力作 **《Introduction to VLSI Design Flow》** 极具战略学习价值：
 
 <div align="center">
   <img src="https://assets.cambridge.org/97810091/21996/cover/9781009121996.jpg" alt="Introduction to VLSI Design Flow Cover" width="220" />
