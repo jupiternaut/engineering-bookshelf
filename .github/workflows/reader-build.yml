@@ -1,0 +1,44 @@
+name: Four-book HTML build
+on:
+  push:
+    branches: [reader/gitbook-html]
+    paths:
+      - '.github/workflows/reader-build.yml'
+      - 'reader/**'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build readers when implementation is present
+        run: |
+          if [ -f reader/build.py ]; then
+            python -m pip install -r reader/requirements.txt
+            python reader/build.py
+            python reader/verify.py
+          fi
+      - name: Export exact book sources for conversion
+        uses: actions/upload-artifact@v4
+        with:
+          name: reader-source
+          retention-days: 1
+          if-no-files-found: error
+          path: |
+            README.md
+            embedded/
+            devops/
+            sre/
+            google-swe/
+      - name: Export HTML books
+        if: ${{ hashFiles('reader/dist/**') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: engineering-gitbooks
+          retention-days: 7
+          if-no-files-found: error
+          path: reader/dist/
