@@ -4,41 +4,71 @@ on:
     branches: [reader/gitbook-html]
     paths:
       - '.github/workflows/reader-build.yml'
-      - 'reader/**'
+      - 'reader/translate_sources.py'
 permissions:
   contents: read
 jobs:
-  build:
+  translate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Build readers when implementation is present
-        run: |
-          if [ -f reader/build.py ]; then
-            python -m pip install -r reader/requirements.txt
-            python reader/build.py
-            python reader/verify.py
-          fi
-      - name: Export exact book sources for conversion
-        uses: actions/upload-artifact@v4
+      - uses: actions/setup-python@v5
         with:
-          name: reader-source
-          retention-days: 1
-          if-no-files-found: error
-          path: |
-            README.md
-            embedded/
-            devops/
-            sre/
-            google-swe/
-      - name: Export HTML books
-        if: ${{ hashFiles('reader/dist/**') != '' }}
-        uses: actions/upload-artifact@v4
+          python-version: '3.11'
+      - name: Install local translation and PDF processing engines
+        run: python -m pip install pymupdf==1.26.7 ctranslate2==4.6.0 sentencepiece==0.2.0
+      - name: Translate exact source units without a paid API
+        run: python reader/translate_sources.py --shard ${{ matrix.shard }} --count 20
+      - uses: actions/upload-artifact@v4
         with:
-          name: engineering-gitbooks
+          name: translation-shard-${{ matrix.shard }}
           retention-days: 7
           if-no-files-found: error
-          path: reader/dist/
+          path: reader/intermediate/
+  collect:
+    needs: translate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: translation-shard-*
+          path: reader/intermediate
+          merge-multiple: true
+      - name: Verify all shards are present
+        run: |
+          python - <<'PY'
+          import json, pathlib, gzip, re
+          p=pathlib.Path('reader/intermediate')
+          files=sorted(p.glob('translations-*.json'))
+          assert len(files)==20, len(files)
+          translations={}
+          for f in files:
+              data=json.loads(f.read_text())
+              assert not set(data).intersection(translations), 'duplicate units'
+              translations.update(data)
+          assert all(v.strip() for v in translations.values())
+          (p/'translations.json').write_text(json.dumps(translations,ensure_ascii=False),encoding='utf-8')
+          print('Complete nonempty translated units:',len(translations))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reader-content
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            reader/intermediate/corpus.json.gz
+            reader/intermediate/translations.json
+            reader/intermediate/provenance-*.json
+            reader/translate_sources.py
