@@ -26,6 +26,7 @@ jobs:
           name: offline-translator
           retention-days: 1
           if-no-files-found: error
+          include-hidden-files: true
           path: reader/.model/
   translate:
     needs: prepare
